@@ -1,0 +1,6 @@
+spine_meeko.png
+size:514,323
+filter:Linear,Linear
+player_meeko
+bounds:2,2,510,319
+offsets:0,193,512,512
