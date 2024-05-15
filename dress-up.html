@@ -1,5 +1,10 @@
+<!DOCTYPE html>
 <html>
-  <script src="https://unpkg.com/@esotericsoftware/spine-webgl@4.1.*/dist/iife/spine-webgl.js"></script>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  </head>
+  <script src="https://unpkg.com/@esotericsoftware/spine-webgl@4.2.41/dist/iife/spine-webgl.js"></script>
   <style>
     html,
     body {
@@ -112,7 +117,7 @@
           }
           this.skeleton.setSkin(newSkin);
           this.skeleton.setToSetupPose();
-          this.skeleton.updateWorldTransform();
+          this.skeleton.updateWorldTransform(spine.Physics.update);
 
           // Calculate the bounds so we can center and zoom
           // the camera such that the skeleton is in full view.
@@ -151,7 +156,7 @@
             // to the setup pose and calculate the world transforms
             this.skeleton.setSkin(skin);
             this.skeleton.setToSetupPose();
-            this.skeleton.updateWorldTransform();
+            this.skeleton.updateWorldTransform(spine.Physics.update);
 
             // Calculate the bounding box enclosing the skeleton.
             let offset = new spine.Vector2(),
@@ -220,7 +225,7 @@
         update(canvas, delta) {
           this.state.update(delta);
           this.state.apply(this.skeleton);
-          this.skeleton.updateWorldTransform();
+          this.skeleton.updateWorldTransform(spine.Physics.update);
         }
 
         render(canvas) {
