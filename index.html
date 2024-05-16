@@ -14,12 +14,20 @@
   <body>
     <canvas
       id="canvas"
-      style="position: absolute; width: 100%; height: 100%"
+      style="position: fixed; width: 100%; height: 100%; bottom: 0; z-index: -1"
     ></canvas>
+    <div style="padding: 8; height: auto; background: white">
+      <label for="animation-options">Animation:</label>
+      <select name="animation-options" id="animation-options"></select>
+
+      <label for="skin-options">Skin:</label>
+      <select name="skin-options" id="skin-options"></select>
+    </div>
     <script>
       class App {
         constructor() {
           this.skeleton = null;
+          this.skeletonData = null;
           this.animationState = null;
 
           this.canvas = null;
@@ -35,6 +43,9 @@
           this.atlasAsset = "assets/spine_meeko_4.1.atlas";
           this.skelAsset = "assets/spine_meeko_4.1.skel";
           this.animation = "walk-ex";
+          this.animationNames = [];
+
+          this.selectedSkins = [];
 
           // this skins1 scrapped from .json
           this.skins1 = [
@@ -99,16 +110,118 @@
 
           // Set the scale to apply during parsing, parse the file, and create a new skeleton.
           skeletonBinary.scale = this.scale;
-          var skeletonData = skeletonBinary.readSkeletonData(
+          this.skeletonData = skeletonBinary.readSkeletonData(
             assetManager.require(this.skelAsset)
           );
-          this.skeleton = new spine.Skeleton(skeletonData);
+          console.log(
+            "🚀 ~ App ~ initialize ~ this.skeletonData:",
+            this.skeletonData
+          );
+
+          this.skeleton = new spine.Skeleton(this.skeletonData);
 
           // Create an AnimationState, and set the "run" animation in looping mode.
-          var animationStateData = new spine.AnimationStateData(skeletonData);
+          var animationStateData = new spine.AnimationStateData(
+            this.skeletonData
+          );
           this.animationState = new spine.AnimationState(animationStateData);
-          this.animationState.setAnimation(0, this.animation, true);
+          this.changeAnimation(this.animation);
+
+          this.createUI();
         }
+
+        createUI() {
+          // create animation options
+          const selectAnimation = document.getElementById("animation-options");
+          selectAnimation.onchange = (e) =>
+            this.changeAnimation(e.target.value);
+
+          this.skeletonData.animations.map((i) => {
+            const newNode = document.createElement("option");
+            newNode.value = i.name;
+            const textNode = document.createTextNode(i.name);
+            newNode.appendChild(textNode);
+            selectAnimation.appendChild(newNode);
+          });
+
+          // create skin options
+          const selectSkin = document.getElementById("skin-options");
+          selectSkin.onchange = (e) => this.changeSkin(e.target.value);
+
+          this.skeletonData.skins.map((i) => {
+            const newNode = document.createElement("option");
+            newNode.value = i.name;
+            const textNode = document.createTextNode(i.name);
+            newNode.appendChild(textNode);
+            selectSkin.appendChild(newNode);
+          });
+        }
+
+        changeAnimation(name) {
+          console.log("changeAnimation", name);
+          this.animationState.setAnimation(0, name, true);
+          this.animation = name;
+        }
+
+        changeSkin(name) {
+          console.log("changeSkin", name);
+
+          // Create a new skin from all the selected skins.
+          let newSkin = new spine.Skin("custom-skin");
+          newSkin.addSkin(this.skeletonData.findSkin(name));
+          // for (var skinName of this.selectedSkins) {
+          //   console.log("skins", skinName);
+          // }
+          this.skeleton.setSkin(newSkin);
+          this.skeleton.setToSetupPose();
+          this.skeleton.updateWorldTransform();
+
+          // Calculate the bounds so we can center and zoom
+          // the camera such that the skeleton is in full view.
+          // let offset = new spine.Vector2(),
+          //   size = new spine.Vector2();
+          // this.skeleton.getBounds(offset, size);
+          // this.lastBounds = { offset: offset, size: size };
+        }
+
+        // addSkin(skinName) {
+        //   if (this.selectedSkins.indexOf(skinName) != -1) return;
+        //   this.selectedSkins.push(skinName);
+        //   let thumbnail = this.skinThumbnails[skinName];
+        //   thumbnail.isSet = true;
+        //   thumbnail.style.filter = "none";
+        //   this.updateSkin();
+        // }
+
+        // removeSkin(skinName) {
+        //   let index = this.selectedSkins.indexOf(skinName);
+        //   if (index == -1) return;
+        //   this.selectedSkins.splice(index, 1);
+        //   let thumbnail = this.skinThumbnails[skinName];
+        //   thumbnail.isSet = false;
+        //   thumbnail.style.filter = "grayscale(1)";
+        //   this.updateSkin();
+        // }
+
+        // updateSkin() {
+        //   console.log("updateSkin()");
+        //   // Create a new skin from all the selected skins.
+        //   let newSkin = new spine.Skin("custom-skin");
+        //   for (var skinName of this.selectedSkins) {
+        //     console.log(skinName);
+        //     newSkin.addSkin(this.skeletonData.findSkin(skinName));
+        //   }
+        //   this.skeleton.setSkin(newSkin);
+        //   this.skeleton.setToSetupPose();
+        //   this.skeleton.updateWorldTransform();
+
+        //   // Calculate the bounds so we can center and zoom
+        //   // the camera such that the skeleton is in full view.
+        //   let offset = new spine.Vector2(),
+        //     size = new spine.Vector2();
+        //   this.skeleton.getBounds(offset, size);
+        //   this.lastBounds = { offset: offset, size: size };
+        // }
 
         update(canvas, delta) {
           // console.log("updating", delta);
