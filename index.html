@@ -19,9 +19,15 @@
     <div style="padding: 8; height: auto; background: white">
       <label for="animation-options">Animation:</label>
       <select name="animation-options" id="animation-options"></select>
+      <span style="margin-right: 24px"></span>
 
       <label for="skin-options">Skin:</label>
       <select name="skin-options" id="skin-options"></select>
+
+      <span style="margin-right: 24px"></span>
+      <button id="reload-atlas2">use atlas1</button>
+      <button id="reload-atlas1">use atlas2</button>
+      <button id="reload-atlas3">use atlas3</button>
     </div>
     <script>
       class App {
@@ -40,52 +46,9 @@
           // this.animation = "run";
 
           this.scale = 4;
-          this.atlasAsset = "assets/spine_meeko_4.1.atlas";
+          this.atlasAsset = "assets/spine_meeko2.atlas";
           this.skelAsset = "assets/spine_meeko_4.1.skel";
           this.animation = "walk-ex";
-          this.animationNames = [];
-
-          this.selectedSkins = [];
-
-          // this skins1 scrapped from .json
-          this.skins1 = [
-            "char_m/char_face/face-main",
-            "char_m/char_face/face-sad",
-            "char_m/char_face/face-happy",
-            "char_m/char_hair_b/char_hair_b1",
-            "char_m/char_hair_b/char_hair_b2",
-            "char_m/char_hair_b/char_hair_b3",
-            "cos_m/cos_suit",
-            "cos_m/cos_top2",
-            "cos_m/cos_overall1",
-            "cos_m/cos_dress2",
-          ];
-
-          // this skins2 is from reading skeleten viewer
-          this.skins2 = [
-            "char_m/char_face/face-happy",
-            "char_m/char_face/face-main",
-            "char_m/char_face/face-sad",
-            "char_m/char_face/face-serious",
-            "char_m/char_face/face-surprised",
-            "char_m/char_hair_b/char_hair_b1",
-            "char_m/char_hair_b/char_hair_b2",
-            "char_m/char_hair_b/char_hair_b3",
-            "char_m/char_hair_b/char_hair_b4",
-            "char_m/char_hair_b/char_hair_f",
-            "char_m/char_race_m/char_race_ears",
-            "char_m/char_race_m/char_race_tail_m1",
-            "char_m/char_race_m/char_race_tail_m2",
-            "cos_m/cos_acc_m_/cos_acc_m2",
-            "cos_m/cos_btm",
-            "cos_m/cos_dress",
-            "cos_m/cos_dress2",
-            "cos_m/cos_overall",
-            "cos_m/cos_overall1",
-            "cos_m/cos_suit",
-            "cos_m/cos_top",
-            "cos_m/cos_top2",
-          ];
         }
 
         loadAssets(canvas) {
@@ -95,18 +58,25 @@
           canvas.assetManager.loadTextureAtlas(this.atlasAsset);
         }
 
-        initialize(canvas) {
+        async reloadAtlas(atlas) {
+          console.log("reloadAtlas", atlas);
+          this.atlasAsset = atlas;
+          await this.canvas.assetManager.loadTextureAtlas(atlas);
+          this.initialize(this.canvas);
+        }
+
+        async initialize(canvas) {
           this.canvas = canvas;
           let assetManager = canvas.assetManager;
 
           // Create the texture atlas.
-          var atlas = assetManager.require(this.atlasAsset);
+          var atlas = await assetManager.require(this.atlasAsset);
 
           // Create a AtlasAttachmentLoader that resolves region, mesh, boundingbox and path attachments
-          var atlasLoader = new spine.AtlasAttachmentLoader(atlas);
+          var atlasLoader = await new spine.AtlasAttachmentLoader(atlas);
 
           // Create a SkeletonBinary instance for parsing the .skel file.
-          var skeletonBinary = new spine.SkeletonBinary(atlasLoader);
+          var skeletonBinary = await new spine.SkeletonBinary(atlasLoader);
 
           // Set the scale to apply during parsing, parse the file, and create a new skeleton.
           skeletonBinary.scale = this.scale;
@@ -175,53 +145,7 @@
           this.skeleton.setSkin(newSkin);
           this.skeleton.setToSetupPose();
           this.skeleton.updateWorldTransform();
-
-          // Calculate the bounds so we can center and zoom
-          // the camera such that the skeleton is in full view.
-          // let offset = new spine.Vector2(),
-          //   size = new spine.Vector2();
-          // this.skeleton.getBounds(offset, size);
-          // this.lastBounds = { offset: offset, size: size };
         }
-
-        // addSkin(skinName) {
-        //   if (this.selectedSkins.indexOf(skinName) != -1) return;
-        //   this.selectedSkins.push(skinName);
-        //   let thumbnail = this.skinThumbnails[skinName];
-        //   thumbnail.isSet = true;
-        //   thumbnail.style.filter = "none";
-        //   this.updateSkin();
-        // }
-
-        // removeSkin(skinName) {
-        //   let index = this.selectedSkins.indexOf(skinName);
-        //   if (index == -1) return;
-        //   this.selectedSkins.splice(index, 1);
-        //   let thumbnail = this.skinThumbnails[skinName];
-        //   thumbnail.isSet = false;
-        //   thumbnail.style.filter = "grayscale(1)";
-        //   this.updateSkin();
-        // }
-
-        // updateSkin() {
-        //   console.log("updateSkin()");
-        //   // Create a new skin from all the selected skins.
-        //   let newSkin = new spine.Skin("custom-skin");
-        //   for (var skinName of this.selectedSkins) {
-        //     console.log(skinName);
-        //     newSkin.addSkin(this.skeletonData.findSkin(skinName));
-        //   }
-        //   this.skeleton.setSkin(newSkin);
-        //   this.skeleton.setToSetupPose();
-        //   this.skeleton.updateWorldTransform();
-
-        //   // Calculate the bounds so we can center and zoom
-        //   // the camera such that the skeleton is in full view.
-        //   let offset = new spine.Vector2(),
-        //     size = new spine.Vector2();
-        //   this.skeleton.getBounds(offset, size);
-        //   this.lastBounds = { offset: offset, size: size };
-        // }
 
         update(canvas, delta) {
           // console.log("updating", delta);
@@ -250,9 +174,18 @@
         }
       }
 
+      const app = new App();
       new spine.SpineCanvas(document.getElementById("canvas"), {
-        app: new App(),
+        app,
       });
+
+      // create randomize atlas button
+      document.getElementById("reload-atlas1").onclick = () =>
+        app.reloadAtlas("assets/spine_meeko1.atlas");
+      document.getElementById("reload-atlas2").onclick = () =>
+        app.reloadAtlas("assets/spine_meeko2.atlas");
+      document.getElementById("reload-atlas3").onclick = () =>
+        app.reloadAtlas("assets/spine_meeko3.atlas");
     </script>
   </body>
 </html>
