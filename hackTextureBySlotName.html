@@ -1,0 +1,86 @@
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>spine-pixi</title>
+    <script src="https://cdn.jsdelivr.net/npm/pixi.js@7.2.4/dist/pixi.js"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/pixi.js@6.5.10/dist/browser/pixi.js"></script> -->
+    <script src="https://unpkg.com/@esotericsoftware/spine-pixi@4.1.*/dist/iife/spine-pixi.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/reset-css@5.0.2/reset.min.css"
+    />
+  </head>
+
+  <body>
+    <script>
+      (async function () {
+        console.log("pixi", PIXI);
+        var app = new PIXI.Application({
+          width: window.innerWidth,
+          height: window.innerHeight,
+          resolution: window.devicePixelRatio || 1,
+          autoDensity: true,
+          resizeTo: window,
+          backgroundColor: 0x2c3e50,
+          hello: true,
+        });
+        document.body.appendChild(app.view);
+
+        // Pre-load the skeleton data and atlas. You can also load .json skeleton data.
+        PIXI.Assets.add("spineMeekoData", "./assets/spine_meeko_4.1.skel");
+        PIXI.Assets.add("spineMeekoAtlas", "./assets/spine_meeko2.atlas");
+
+        await PIXI.Assets.load(["spineMeekoData", "spineMeekoAtlas"]);
+
+        // Create the spine display object
+        const spineMeeko = spine.Spine.from(
+          "spineMeekoData",
+          "spineMeekoAtlas",
+          {
+            scale: 5,
+          }
+        );
+
+        // Set the default mix time to use when transitioning
+        // from one animation to the next.
+        spineMeeko.state.data.defaultMix = 0.2;
+
+        // Center the spine object on screen.
+        spineMeeko.x = window.innerWidth / 2;
+        spineMeeko.y =
+          window.innerHeight / 2 + spineMeeko.getBounds().height / 2;
+
+        // Set animation "run" on track 0, looped.
+        spineMeeko.state.setAnimation(0, "walk-ex", true);
+        // Add the display object to the stage.
+        app.stage.addChild(spineMeeko);
+
+        /// -------------------------------
+        console.log("🚀 ~ spineMeeko:", spineMeeko);
+        // PIXI.Assets.add("shoe", "./slot/cos_shoe_BootsTall_10.png");
+        // PIXI.Assets.add("btm", "./slot/cos_btm_ShortsCargo_9.png");
+        PIXI.Assets.add("hair_quiff", "./slot/char_hair_Quiff_2.png");
+
+        await PIXI.Assets.load(["hair_quiff"]);
+        console.log("PIXI.Assets", PIXI.Assets);
+
+        // spineMeeko.hackTextureBySlotName("head", myTexture);
+
+        var hairQuiff = PIXI.Assets.get("hair_quiff");
+
+        spine.hackTextureBySlotName("char_hair_c", hairQuiff);
+        // //Region attachments are tricky: they must have width and height, specify it if your texture differs from old one
+        // spineMeeko.hackTextureBySlotName("arm", myTexture, {
+        //   width: 100,
+        //   height: 100,
+        // });
+        // //If you want texture have its natural size, pass it. pixiV3 - texture.frame, pixiV4 - texture.orig
+        // spineMeeko.hackTextureBySlotIndex(
+        //   7,
+        //   myTexture,
+        //   texture.orig || texture.frame
+        // );
+      })();
+    </script>
+  </body>
+</html>
